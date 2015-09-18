@@ -1,8 +1,9 @@
+import time, threading
+
+
 class Elevator:
 
-	'''
-	curr_floor
-	'''
+	curr_floor = 1
 
 	to_floor_q = []
 	move_dir = 0	# 0: stationary, 1: going up, -1: going down
@@ -25,23 +26,47 @@ class Elevator:
 		pass
 
 	def moveToFloor(self, floor):
-		#if len(self.to_floor_q) == 0:
+		t = threading.Thread()
+
 		if self.curr_floor < floor:
-			move_dir = 1
+			self.move_dir = 1
 			print(self.name + " moving up")
+			t = threading.Thread(target=Elevator.move, args=(self, floor))
+			t.start()
+
 		elif self.curr_floor > floor:
-			move_dir = -1
+			self.move_dir = -1
 			print(self.name + " moving down")
+			t = threading.Thread(target=Elevator.move, args=(self, floor))
+			t.start()
 
 			#Some timer thing to time the travel time. Possible need of threads.
 			# Need the possibility of getting floor requests while moving up and down
+		while t.isAlive():
+			if self.move_dir == -1:
+				print ("Moving down")
+			elif self.move_dir == 1:
+				print("Moving up")
+			time.sleep(0.1)
 
-		self.curr_floor = floor
-		print(self.name + " reached floor " + str(floor))
 		move_dir = 0
-		#else:
-		#	self.to_floor_q.append(floor)
-		
+
+	def move(self, floor):
+
+		f_to_f = 0.8 # Time to move from one floor to the next [s]
+
+		if self.curr_floor > floor:
+			while self.curr_floor > floor:
+				print (self.name + " current floor: " + str(self.curr_floor))
+				time.sleep(f_to_f)
+				self.curr_floor -= 1
+		else:
+			while self.curr_floor < floor:
+				print (self.name + " current floor: " + str(self.curr_floor))
+				time.sleep(f_to_f)
+				self.curr_floor += 1
+
+		return
 
 def requestCar(from_floor, to_floors, dir_str):
 	elev_car1.appendToQ(from_floor)
